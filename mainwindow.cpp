@@ -75,7 +75,19 @@ void MainWindow::mouseMoveEvent(QMouseEvent *ev)
 {
     const auto& newPos = ev->pos();
     //rotate
-    ui->openGLWidget->cameraRotates((newPos.x() - mousePos.x()) * mouseSensitivy, (newPos.y() - mousePos.y()) * mouseSensitivy);
+    if (ev->buttons() & Qt::LeftButton) {
+        ui->openGLWidget->cameraRotates((newPos.x() - mousePos.x()) * mouseSensitivy, (newPos.y() - mousePos.y()) * mouseSensitivy);
+    }
+
+    //zoom (here translation in z)
+    if (ev->buttons() & Qt::RightButton) {
+        ui->openGLWidget->cameraMoves(0.f, 0.f, -(newPos.y() - mousePos.y()) * mouseSensitivy);
+    }
+
+    // translation in xy
+    if (ev->buttons() & Qt::MiddleButton) {
+        ui->openGLWidget->cameraMoves(0.2f * (newPos.x() - mousePos.x()) * mouseSensitivy, -0.2f * (newPos.y() - mousePos.y()) * mouseSensitivy, 0.f);
+    }
 
     mousePos = ev->pos();
 }

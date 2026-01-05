@@ -203,11 +203,13 @@ unsigned int OpenGLView::getTriangleCount() const
 
 void OpenGLView::setDefaults() {
     // scene Information
-    cameraPos = QVector3D(0.0f, 0.0f, -3.0f);
-    cameraDir = QVector3D(0.f, 0.f, -1.f);
+    cameraPos = QVector3D(0.0f, 15.0f, 30.0f);
+    cameraDir = QVector3D(0.5f, -1.f, -1.f).normalized();
     movementSpeed = 0.02f;
-    angleX = 0.0f;
-    angleY = 0.0f;
+
+    angleX = std::atan2(cameraDir.x(), -cameraDir.z()) * 180.0f / M_PI;
+    angleY = std::asin(cameraDir.y()) * 180.0f / M_PI;
+
     // light information
     state.getLightPos() = Vec3f(0.0f, 5.0f, 20.0f);
     lightMotionSpeed = 10.f;
@@ -255,13 +257,17 @@ void OpenGLView::cameraRotates(float deltaX, float deltaY)
     angleX = std::fmod(angleX + deltaX, 360.f);
     angleY += deltaY;
     angleY = std::max(-70.f, std::min(angleY, 70.f));
+    
+    float radX = angleX * M_PI / 180.0f;
+    float radY = angleY * M_PI / 180.0f;
 
-    cameraDir.setX(std::sin(angleX * M_RadToDeg) * std::cos(angleY * M_RadToDeg));
-    cameraDir.setZ(-std::cos(angleX * M_RadToDeg) * std::cos(angleY * M_RadToDeg));
+    cameraDir.setX(std::sin(radX) * std::cos(radY));
+    cameraDir.setZ(-std::cos(radX) * std::cos(radY));
     cameraDir.setY(std::max(0.0f, std::min(std::sqrt(1.0f - cameraDir.x() * cameraDir.x() - cameraDir.z() * cameraDir.z()), 1.0f)));
-
-    if (angleY < 0.f) cameraDir.setY(-cameraDir.y());
-
+    
+    if (angleY < 0.f) 
+        cameraDir.setY(-cameraDir.y());
+    
     update();
 }
 

@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     QSurfaceFormat format = QSurfaceFormat::defaultFormat();
     format.setRenderableType(QSurfaceFormat::RenderableType::OpenGL);
     format.setDepthBufferSize(24); //Enable depth buffer
-    format.setVersion(3, 3);
+    format.setVersion(4, 6);
     //format.setSwapBehavior(QSurfaceFormat::SwapBehavior::DoubleBuffer); //Enable VSync
     format.setProfile(QSurfaceFormat::OpenGLContextProfile::CoreProfile);
     //format.setOption(QSurfaceFormat::FormatOption::DeprecatedFunctions);
