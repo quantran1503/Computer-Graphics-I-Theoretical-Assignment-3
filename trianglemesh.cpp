@@ -630,16 +630,44 @@ void TriangleMesh::generateSphere(QOpenGLFunctions_3_3_Core* f) {
 }
 
 
-void TriangleMesh::generateTerrain(unsigned int h, unsigned int w, unsigned int iterations) {
+void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int iterations) {
     // TODO(3.1): Implement terrain generation.
-    // The terrain should be a grid of size h x w nodes.
+    // The terrain should be a grid of size l x w nodes.
+
+    // generate heightmap using The Fault Algorithm
+    std::vector<std::vector<double>> heightmap(l, std::vector<double>(w));
+    float d = std::sqrt(w * w + l * l);
+    double displacement = 0.1;
+    // rand() / RAND_MAX gives a random number between 0 and 1.
+     // therefore c will be a random number between -d/2 and d/2
+    float c = (rand() / RAND_MAX) * d - d / 2.0f;
+
+    for (int i = 0; i < iterations; i++)
+    {
+        float v = std::rand();
+        // convert v to gradient
+        v = v * M_PI / 180.0f;
+        float a = std::sin(v);
+        float b = std::cos(v);
+
+        for (int x = 0; x < heightmap.size(); x++)
+        for (int z = 0; z < heightmap[0].size(); z++)
+        {
+            if (a * x + b * z - c > 0)
+                heightmap[x][z] += displacement;
+            else
+                heightmap[x][z] -= displacement;
+            displacement *= 0.9f;
+        }
+    }
+
 
 
     vertices.reserve(4);
     vertices.emplace_back(0, 0, 0);
-    vertices.emplace_back(0, 0, 10);
-    vertices.emplace_back(10, 0, 10);
-    vertices.emplace_back(10, 0, 0);
+    vertices.emplace_back(0, 0, w);
+    vertices.emplace_back(w, 0, w);
+    vertices.emplace_back(w, 0, 0);
 
     triangles.reserve(2);
     triangles.emplace_back(0, 1, 2);
