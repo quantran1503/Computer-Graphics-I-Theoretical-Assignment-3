@@ -69,7 +69,7 @@ void OpenGLView::initializeGL()
 
     meshes.emplace_back(f);
     meshes[1].generateTerrain(50, 50, 4000);
-    meshes[1].setStaticColor(Vec3f(1.f, 1.f, 1.f));
+    // meshes[1].setStaticColor(Vec3f(1.f, 1.f, 1.f));
     meshes[1].setColoringMode(TriangleMesh::ColoringType::COLOR_ARRAY);
 
     bumpSphereMesh.generateSphere(f);
@@ -333,6 +333,7 @@ void OpenGLView::recreateTerrain()
     makeCurrent();
     meshes[1].clear();
     meshes[1].generateTerrain(50, 50, 4000);
+    meshes[1].setColoringMode(TriangleMesh::ColoringType::COLOR_ARRAY);
     doneCurrent();
 }
 
