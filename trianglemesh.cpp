@@ -689,9 +689,9 @@ void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int 
     for (int x = 0; x < l - 1; x++) {
         for (int z = 0; z < w - 1; z++) {
             int cell = x * w + z;
-            int right = x * w + (z + 1);
-            int below = (x + 1) * w + z;
-            int belowRight = (x + 1) * w + (z + 1);
+            int right = cell + 1;
+            int below = cell + w;
+            int belowRight = below + 1;
 
             triangles.emplace_back(cell, right, below);
             triangles.emplace_back(right, below, belowRight);

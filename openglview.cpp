@@ -21,6 +21,7 @@
 GLuint OpenGLView::csVAO = 0;
 GLuint OpenGLView::csVBOs[2] = {0, 0};
 
+// todo: Geological formations in a single color are not very realistic. Color the computed mesh depending on height of the regions, for example using white(snow& ice), grey, brown, light green, dark green and blue(water).
 OpenGLView::OpenGLView(QWidget* parent) : QOpenGLWidget(parent) {
     setDefaults();
 
@@ -185,6 +186,7 @@ void OpenGLView::drawLight() {
     state.pushModelViewMatrix();
     Vec3f& lp = state.getLightPos();
     state.getCurrentModelViewMatrix().translate(lp.x(), lp.y(), lp.z());
+    state.getCurrentModelViewMatrix().scale(2, 2, 2);
     sphereMesh.draw(state);
     state.popModelViewMatrix();
 }
@@ -211,8 +213,8 @@ void OpenGLView::setDefaults() {
     angleY = std::asin(cameraDir.y()) * 180.0f / M_PI;
 
     // light information
-    state.getLightPos() = Vec3f(0.0f, 5.0f, 20.0f);
-    lightMotionSpeed = 10.f;
+    state.getLightPos() = Vec3f(0.0f, 10.0f, 40.0f);
+    lightMotionSpeed = 15.f;
     // mouse information
     mouseSensitivy = 1.0f;
 
