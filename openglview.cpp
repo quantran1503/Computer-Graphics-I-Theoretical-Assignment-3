@@ -203,7 +203,7 @@ unsigned int OpenGLView::getTriangleCount() const
 
 void OpenGLView::setDefaults() {
     // scene Information
-    cameraPos = QVector3D(0.0f, 15.0f, 30.0f);
+    cameraPos = QVector3D(0.0f, 30.0f, 70.0f);
     cameraDir = QVector3D(0.5f, -1.f, -1.f).normalized();
     movementSpeed = 0.02f;
 
