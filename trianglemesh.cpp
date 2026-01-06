@@ -631,18 +631,20 @@ void TriangleMesh::generateSphere(QOpenGLFunctions_3_3_Core* f) {
 
 
 void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int iterations) {
-    // TODO(3.1): Implement terrain generation.
+    // 3.1: Implement terrain generation.
     // The terrain should be a grid of size l x w nodes.
 
     // generate heightmap using The Fault Algorithm
     std::vector<std::vector<double>> heightmap(l, std::vector<double>(w));
     float d = std::sqrt(w * w + l * l);
     double displacement = 0.1;
+    float waveSize = d / 10.0f;
+    int displacementType = rand() % 3;
 
     for (int i = 0; i < iterations; i++)
     {
         float v = std::rand();
-        // convert v to gradient
+        // convert v to radian
         v = v * M_PI / 180.0f;
         float a = std::sin(v);
         float b = std::cos(v);
@@ -654,25 +656,47 @@ void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int 
         {
             for (int z = 0; z < heightmap[0].size(); z++)
             {
-                if (a * x + b * z - c > 0)
-                    heightmap[x][z] += displacement;
-                else
-                    heightmap[x][z] -= displacement;
+                float dist = a * x + b * z - c;
+                // step function
+                if (displacementType == 0) {
+                    heightmap[x][z] += dist > 0 ? displacement : -displacement;
+                }
+                // cosine function
+                else if (displacementType == 1) {
+                    float cosValue = std::cos(dist / waveSize * M_PI);
+                    heightmap[x][z] += displacement * cosValue;
+                }
+                // sine function
+                else if (displacementType == 2) {
+                    float sinValue = std::sin(dist / waveSize * M_PI);
+                    heightmap[x][z] += displacement * sinValue;
+                }
             }
-
-            // displacement *= 0.9f;
         }
     }
 
-    vertices.reserve(4);
-    vertices.emplace_back(0, 0, 0);
-    vertices.emplace_back(0, 0, w);
-    vertices.emplace_back(w, 0, w);
-    vertices.emplace_back(w, 0, 0);
+    vertices.clear();
+    triangles.clear();
 
-    triangles.reserve(2);
-    triangles.emplace_back(0, 1, 2);
-    triangles.emplace_back(0, 2, 3);
+    // for each cell (x,z) add vertices (x, height, z)
+    for (int x = 0; x < l; x++) 
+    for (int z = 0; z < w; z++) 
+        vertices.emplace_back(x, heightmap[x][z], z);
+
+    // for each cell create two triangles: 
+    // triangle 1 has the cell, the cell to the right and the cell below
+    // triangle 2 has the cell to the right, the cell below and the cell below of the cell to the right
+    for (int x = 0; x < l - 1; x++) {
+        for (int z = 0; z < w - 1; z++) {
+            int cell = x * w + z;
+            int right = x * w + (z + 1);
+            int below = (x + 1) * w + z;
+            int belowRight = (x + 1) * w + (z + 1);
+
+            triangles.emplace_back(cell, right, below);
+            triangles.emplace_back(right, below, belowRight);
+        }
+    }
 
     calculateNormalsByArea();
     calculateBB();
