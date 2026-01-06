@@ -222,6 +222,9 @@ void OpenGLView::setDefaults() {
     // last run: 0 objects and 0 triangles
     objectsLastRun = 0;
     trianglesLastRun = 0;
+
+    // random seed for rand function
+    srand(time(NULL));
 }
 
 void OpenGLView::refreshFpsCounter()

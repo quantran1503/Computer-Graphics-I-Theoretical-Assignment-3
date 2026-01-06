@@ -629,13 +629,52 @@ void TriangleMesh::generateSphere(QOpenGLFunctions_3_3_Core* f) {
     createAllVBOs();
 }
 
-
 void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int iterations) {
     // 3.1: Implement terrain generation.
     // The terrain should be a grid of size l x w nodes.
 
     // generate heightmap using The Fault Algorithm
+    std::vector<std::vector<double>> heightmap = generateHeightmap(l, w, iterations);
+   
+    vertices.clear();
+    colors.clear();
+    triangles.clear();
+
+    for (int x = 0; x < l; x++) 
+    for (int z = 0; z < w; z++)
+    {
+	    double height = heightmap[x][z];
+
+    	// for each cell (x,z) add vertices (x, height, z)
+        vertices.emplace_back(x, height, z);
+
+	    calculateTerrainColor(height);
+    }
+
+    // for each cell create two triangles: 
+    // triangle 1 has the cell, the cell to the right and the cell below
+    // triangle 2 has the cell to the right, the cell below and the cell below of the cell to the right
+    for (int x = 0; x < l - 1; x++) {
+        for (int z = 0; z < w - 1; z++) {
+            int cell = x * w + z;
+            int right = cell + 1;
+            int below = cell + w;
+            int belowRight = below + 1;
+
+            triangles.emplace_back(cell, right, below);
+            triangles.emplace_back(right, below, belowRight);
+        }
+    }
+
+    calculateNormalsByArea();
+    calculateBB();
+    createAllVBOs();
+}
+
+std::vector<std::vector<double>> TriangleMesh::generateHeightmap(int l, int w, int iterations)
+{
     std::vector<std::vector<double>> heightmap(l, std::vector<double>(w));
+
     float d = std::sqrt(w * w + l * l);
     double displacement = 0.1;
     float waveSize = d / 10.0f;
@@ -649,7 +688,7 @@ void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int 
         float a = std::sin(v);
         float b = std::cos(v);
         // rand() / RAND_MAX gives a random number between 0 and 1.
-		// therefore c will be a random number between -d/2 and d/2
+        // therefore c will be a random number between -d/2 and d/2
         float c = (static_cast<float>(rand()) / RAND_MAX) * d - d / 2.0f;
 
         for (int x = 0; x < heightmap.size(); x++)
@@ -675,30 +714,40 @@ void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int 
         }
     }
 
-    vertices.clear();
-    triangles.clear();
+    return heightmap;
+}
 
-    // for each cell (x,z) add vertices (x, height, z)
-    for (int x = 0; x < l; x++) 
-    for (int z = 0; z < w; z++) 
-        vertices.emplace_back(x, heightmap[x][z], z);
+void TriangleMesh::calculateTerrainColor(double height)
+{
+    Vec3f deepWater(0.0f, 0.0f, 0.5f);      // deep blue
+    Vec3f shallowWater(0.0f, 0.5f, 1.0f);   // light blue
+    Vec3f sand(0.93f, 0.87f, 0.5f);         // sand/yellow
+    Vec3f lowLand(0.2f, 0.8f, 0.2f);        // light green
+    Vec3f grass(0.0f, 0.6f, 0.0f);          // dark green
+    Vec3f forest(0.0f, 0.4f, 0.0f);         // forest green
+    Vec3f mountain(0.6f, 0.4f, 0.2f);       // brown
+    Vec3f rock(0.5f, 0.5f, 0.5f);           // grey
+    Vec3f snow(1.0f, 1.0f, 1.0f);           // white
 
-    // for each cell create two triangles: 
-    // triangle 1 has the cell, the cell to the right and the cell below
-    // triangle 2 has the cell to the right, the cell below and the cell below of the cell to the right
-    for (int x = 0; x < l - 1; x++) {
-        for (int z = 0; z < w - 1; z++) {
-            int cell = x * w + z;
-            int right = cell + 1;
-            int below = cell + w;
-            int belowRight = below + 1;
-
-            triangles.emplace_back(cell, right, below);
-            triangles.emplace_back(right, below, belowRight);
-        }
-    }
-
-    calculateNormalsByArea();
-    calculateBB();
-    createAllVBOs();
+    Vec3f color;
+    if (height < -1.0f)
+        color = deepWater;
+    else if (height < 0.0f)
+        color = shallowWater;
+    else if (height < 1.0f)
+        color = sand;
+    else if (height < 2.0f)
+        color = lowLand;
+    else if (height < 5.0f)
+        color = grass;
+    else if (height < 7.0f)
+        color = forest;
+    else if (height < 8.0f)
+        color = mountain;
+    else if (height < 12.0f)
+        color = rock;
+    else
+        color = snow;
+    
+    colors.push_back(color);
 }
