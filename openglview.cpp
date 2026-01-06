@@ -21,7 +21,6 @@
 GLuint OpenGLView::csVAO = 0;
 GLuint OpenGLView::csVBOs[2] = {0, 0};
 
-// todo: Geological formations in a single color are not very realistic. Color the computed mesh depending on height of the regions, for example using white(snow& ice), grey, brown, light green, dark green and blue(water).
 OpenGLView::OpenGLView(QWidget* parent) : QOpenGLWidget(parent) {
     setDefaults();
 
@@ -205,8 +204,8 @@ unsigned int OpenGLView::getTriangleCount() const
 
 void OpenGLView::setDefaults() {
     // scene Information
-    cameraPos = QVector3D(0.0f, 30.0f, 70.0f);
-    cameraDir = QVector3D(0.5f, -1.f, -1.f).normalized();
+    cameraPos = QVector3D(0.0f, 40.0f, 70.0f);
+    cameraDir = QVector3D(0.5f, -1.0f, -1.0f).normalized();
     movementSpeed = 0.02f;
 
     angleX = std::atan2(cameraDir.x(), -cameraDir.z()) * 180.0f / M_PI;

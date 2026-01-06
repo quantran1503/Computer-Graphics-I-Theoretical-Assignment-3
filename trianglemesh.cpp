@@ -634,7 +634,8 @@ void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int 
     // The terrain should be a grid of size l x w nodes.
 
     // generate heightmap using The Fault Algorithm
-    std::vector<std::vector<double>> heightmap = generateHeightmap(l, w, iterations);
+    int displacementType = rand() % 4;
+    std::vector<std::vector<double>> heightmap = generateHeightmap(l, w, iterations, displacementType);
    
     vertices.clear();
     colors.clear();
@@ -648,7 +649,7 @@ void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int 
     	// for each cell (x,z) add vertices (x, height, z)
         vertices.emplace_back(x, height, z);
 
-	    calculateTerrainColor(height);
+	    calculateTerrainColor(height, displacementType);
     }
 
     // for each cell create two triangles: 
@@ -671,14 +672,13 @@ void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int 
     createAllVBOs();
 }
 
-std::vector<std::vector<double>> TriangleMesh::generateHeightmap(int l, int w, int iterations)
+std::vector<std::vector<double>> TriangleMesh::generateHeightmap(int l, int w, int iterations, int displacementType)
 {
     std::vector<std::vector<double>> heightmap(l, std::vector<double>(w));
 
     float d = std::sqrt(w * w + l * l);
     double displacement = 0.1;
     float waveSize = d / 10.0f;
-    int displacementType = rand() % 3;
 
     for (int i = 0; i < iterations; i++)
     {
@@ -696,19 +696,20 @@ std::vector<std::vector<double>> TriangleMesh::generateHeightmap(int l, int w, i
             for (int z = 0; z < heightmap[0].size(); z++)
             {
                 float dist = a * x + b * z - c;
-                // step function
-                if (displacementType == 0) {
-                    heightmap[x][z] += dist > 0 ? displacement : -displacement;
-                }
+              
                 // cosine function
-                else if (displacementType == 1) {
+            	if (displacementType == 0) {
                     float cosValue = std::cos(dist / waveSize * M_PI);
-                    heightmap[x][z] += displacement * cosValue;
+                    heightmap[x][z] += displacement / 2.0f * cosValue;
                 }
                 // sine function
-                else if (displacementType == 2) {
+                else if (displacementType == 1) {
                     float sinValue = std::sin(dist / waveSize * M_PI);
-                    heightmap[x][z] += displacement * sinValue;
+                    heightmap[x][z] += displacement / 2.0f * sinValue;
+                }
+                // step function
+                else {
+                    heightmap[x][z] += dist > 0 ? displacement : -displacement;
                 }
             }
         }
@@ -717,7 +718,7 @@ std::vector<std::vector<double>> TriangleMesh::generateHeightmap(int l, int w, i
     return heightmap;
 }
 
-void TriangleMesh::calculateTerrainColor(double height)
+void TriangleMesh::calculateTerrainColor(double height, int displacementType)
 {
     Vec3f deepWater(0.0f, 0.0f, 0.5f);      // deep blue
     Vec3f shallowWater(0.0f, 0.5f, 1.0f);   // light blue
@@ -729,25 +730,51 @@ void TriangleMesh::calculateTerrainColor(double height)
     Vec3f rock(0.5f, 0.5f, 0.5f);           // grey
     Vec3f snow(1.0f, 1.0f, 1.0f);           // white
 
-    Vec3f color;
-    if (height < -1.0f)
-        color = deepWater;
-    else if (height < 0.0f)
-        color = shallowWater;
-    else if (height < 1.0f)
-        color = sand;
-    else if (height < 2.0f)
-        color = lowLand;
-    else if (height < 5.0f)
-        color = grass;
-    else if (height < 7.0f)
-        color = forest;
-    else if (height < 8.0f)
-        color = mountain;
-    else if (height < 12.0f)
-        color = rock;
+    Vec3f color = 0;
+
+    // terrain color for step function
+    if (displacementType > 1)
+    {
+        if (height < -7.0f) 
+            color = deepWater;
+        else if (height < -4.0f)
+            color = shallowWater;
+        else if (height < -3.0f)
+            color = sand;
+        else if (height < 0.0f)
+            color = lowLand;
+        else if (height < 5.0f)
+            color = grass;
+        else if (height < 8.0f)
+            color = forest;
+        else if (height < 9.0f)
+            color = mountain;
+        else if (height < 10.0f)
+            color = rock;
+        else
+            color = snow;
+    }
+    // ignore deepWater for cosine and sine functions since they do not look realistic
+    // shrink down the color height so have more colors for these functions
     else
-        color = snow;
+    {
+        if (height < -5.5f)
+            color = shallowWater;
+        else if (height < -4.5f)
+            color = sand;
+        else if (height < -3.5f)
+            color = lowLand;
+        else if (height < -1.5f)
+            color = grass;
+        else if (height < 0.5f)
+            color = forest;
+        else if (height < 2.0f)
+            color = mountain;
+        else if (height < 3.5f)
+            color = rock;
+        else
+            color = snow;
+    }
     
     colors.push_back(color);
 }
