@@ -82,7 +82,7 @@ void OpenGLView::initializeGL()
     csVAO = genCSVAO();
 
     //load shaders
-    GLuint lightShaderID = readShaders(f, "Shader/only_mvp.vert", "Shader/constant_color.frag");
+    GLuint lightShaderID = readShaders(f, "../Shader/only_mvp.vert", "../Shader/constant_color.frag");
     if (lightShaderID) {
         programIDs.push_back(lightShaderID);
         state.setStandardProgram(lightShaderID);
@@ -92,6 +92,8 @@ void OpenGLView::initializeGL()
     currentProgramID = lightShaderID;
 
     bumpProgramID = readShaders(f, "Shader/bump.vert", "Shader/bump.frag");
+
+    skyboxProgramID = readShaders(f, "Shader/skybox.vert", "Shader/skybox.frag");
 
     emit shaderCompiled(0);
     emit shaderCompiled(1);
@@ -113,16 +115,104 @@ void OpenGLView::resizeGL(int width, int height) {
         f->glUniformMatrix4fv(state.getProjectionUniform(), 1, GL_FALSE, state.getCurrentProjectionMatrix().constData());
     }
 
+    state.setCurrentProgram(skyboxProgramID);
+    f->glUniformMatrix4fv(state.getProjectionUniform(), 1, GL_FALSE, state.getCurrentProjectionMatrix().constData());
+
     //Resize viewport
     f->glViewport(0, 0, width, height);
 }
 
+void OpenGLView::skeletonSkybox() {
+    float skyboxVertices[] = {       
+        -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f
+    };
+
+    f->glGenVertexArrays(1, &skyboxVAO);
+    f->glGenBuffers(1, &skyboxVBO);
+    f->glBindVertexArray(skyboxVAO);
+    f->glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    f->glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+
+    f->glEnableVertexAttribArray(0);
+    f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    f->glBindVertexArray(0);
+}
+
+void OpenGLView::textureSkybox() {
+    const char* faces[6] = {
+        "../Textures/skybox1/pos_x.bmp",
+        "../Textures/skybox1/neg_x.bmp",
+        "../Textures/skybox1/pos_y.bmp",
+        "../Textures/skybox1/neg_y.bmp",
+        "../Textures/skybox1/pos_z.bmp",
+        "../Textures/skybox1/neg_z.bmp",
+    };
+
+    skyboxID = loadCubeMap(f, faces);
+}
+
 void OpenGLView::drawSkybox() {
-    // TODO(3.2): Draw a skybox
-    // prepare (no depth test)
-    // draw skybox
-    // ...
-    // restore matrix and attributes
+    f->glDepthMask(GL_FALSE);
+    f->glDisable(GL_LIGHTING);
+    f->glDisable(GL_BLEND);
+
+    state.setCurrentProgram(skyboxProgramID);
+
+    QMatrix4x4 view = state.getCurrentModelViewMatrix();
+    view.setColumn(3, QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
+
+    f->glUniformMatrix4fv(state.getModelViewUniform(), 1, GL_FALSE, view.constData());
+
+    f->glBindVertexArray(skyboxVAO);
+    f->glActiveTexture(GL_TEXTURE0);
+    f->glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxID);
+    f->glDrawArrays(GL_TRIANGLES, 0, 36);
+    f->glBindVertexArray(0);
+
+    f->glDepthMask(GL_TRUE);
+    f->glEnable(GL_LIGHTING);
+    f->glEnable(GL_BLEND);
 }
 
 void OpenGLView::paintGL() {

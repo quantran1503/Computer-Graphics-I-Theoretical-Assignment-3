@@ -96,12 +96,19 @@ private:
     GLuint currentProgramID;
     std::vector<GLuint> programIDs;
     GLuint bumpProgramID;
+    GLuint skyboxProgramID;
 
     //RenderState with matrix stack
     RenderState state;
 
+    GLuint skyboxID = 0;
+    GLuint skyboxVAO = 0;
+    GLuint skyboxVBO = 0;
+
     GLuint genCSVAO();
 
+    void skeletonSkybox();
+    void textureSkybox();
     void drawSkybox();
     void drawCS();
     void drawLight();
