@@ -82,7 +82,7 @@ void OpenGLView::initializeGL()
     csVAO = genCSVAO();
 
     //load shaders
-    GLuint lightShaderID = readShaders(f, "../Shader/only_mvp.vert", "../Shader/constant_color.frag");
+    GLuint lightShaderID = readShaders(f, "Shader/only_mvp.vert", "Shader/constant_color.frag");
     if (lightShaderID) {
         programIDs.push_back(lightShaderID);
         state.setStandardProgram(lightShaderID);
