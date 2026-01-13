@@ -536,11 +536,35 @@ void TriangleMesh::drawVBO(RenderState& state) {
 // === VFC ===
 // ===========
 
+
 //clip planes ax+by+cz-d=0
 struct Plane {
     QVector3D n;  // normal (a,b,c)
     float d;      // distance
 };
+
+//method determining whether the bounding box is in the frustum or outside
+bool isOutsideFrustum(const Plane planes[6], const QVector3D& cmin, const QVector3D& cmax)
+{
+    for (int i = 0; i < 6; i++)
+    {
+        const QVector3D& n = planes[i].n;
+
+        QVector3D p(
+            (n.x() >= 0.0f) ? cmax.x() : cmin.x(),
+            (n.y() >= 0.0f) ? cmax.y() : cmin.y(),
+            (n.z() >= 0.0f) ? cmax.z() : cmin.z()
+        );
+
+        //equation xn-d = ax1+bx2+cx3-d > 0
+        if (QVector3D::dotProduct(p, n) - planes[i].d < 0.0f) {
+            //outside
+            return true;
+        }
+    }
+    //inside
+    return false;
+}
 
 bool TriangleMesh::boundingBoxIsVisible(const RenderState& state) {
     // TODO(3.3): Implement view frustum culling.
@@ -566,7 +590,7 @@ bool TriangleMesh::boundingBoxIsVisible(const RenderState& state) {
 	planes[0].n = QVector3D(vp[3] - vp[0], vp[7] - vp[4], vp[11] - vp[8]);
 	planes[0].d = vp[15] - vp[12];
     //left plane
-    planes[1].n = QVector3D(vp[3]+vp[1], vp[7]+vp[4], vp[11]+vp[8]);
+    planes[1].n = QVector3D(vp[3]+vp[0], vp[7]+vp[4], vp[11]+vp[8]);
 	planes[1].d = vp[15] + vp[12];
 	//up plane
 	planes[2].n = QVector3D(vp[3] - vp[1], vp[7] - vp[5], vp[11] - vp[9]);
@@ -589,43 +613,22 @@ bool TriangleMesh::boundingBoxIsVisible(const RenderState& state) {
     }
 
     int drawn = 0;
-    int culled = 0;
+    //int culled = 0;
 
-    //tyoe of Object unclear to me
-    for (auto& object : ... ) {
-        if (isOutsideFrustum(planes, object.cmin, object.cmax)) {
-            culled++;
-            continue;
+    QVector3D cmin(boundingBoxMin.x(), boundingBoxMin.y(), boundingBoxMin.z());
+    QVector3D cmax(boundingBoxMax.x(), boundingBoxMax.y(), boundingBoxMax.z());
+
+    // return true if the mesh is (partially) inside the frustum
+    for (int i = 0; i < 6; i++) {
+        if (isOutsideFrustum(planes, cmin, cmax)) {
         }
-        object.draw();
-        drawn++;
-    }
-    qDebug() << "Drawn:" << drawn << "Culled:" << culled;
-    return true;
-}
-
-//method determining whether the bounding box is in the frustum or outside
-bool isOutsideFrustum(const Plane planes[6], const QVector3D& cmin, const QVector3D& cmax)
-{
-    for (int i = 0; i < 6; i++)
-    {
-        const QVector3D& n = planes[i].n;
-
-        QVector3D p(
-            (n.x() >= 0.0f) ? cmax.x() : cmin.x(),
-            (n.y() >= 0.0f) ? cmax.y() : cmin.y(),
-            (n.z() >= 0.0f) ? cmax.z() : cmin.z()
-        );
-
-        //equation xn-d = ax1+bx2+cx3-d > 0
-        if (QVector3D::dotProduct(p, n) - planes[i].d < 0.0f) {
-            //outside
-            return true;
+        else {
+            ++drawn;
         }
     }
-    //inside
-    return false;
+    return drawn != 0;
 }
+
 
 
 void TriangleMesh::setStaticColor(Vec3f color) {
