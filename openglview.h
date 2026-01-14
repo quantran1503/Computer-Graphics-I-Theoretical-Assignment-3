@@ -105,6 +105,9 @@ private:
     GLuint skyboxVAO = 0;
     GLuint skyboxVBO = 0;
 
+    GLint skyboxViewLoc;
+    GLint skyboxProjLoc;
+
     GLuint genCSVAO();
 
     void skeletonSkybox();

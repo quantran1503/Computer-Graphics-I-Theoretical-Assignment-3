@@ -95,8 +95,15 @@ void OpenGLView::initializeGL()
 
     skyboxProgramID = readShaders(f, "Shader/skybox.vert", "Shader/skybox.frag");
 
+    f->glUseProgram(skyboxProgramID);
+    skyboxViewLoc = f->glGetUniformLocation(skyboxProgramID, "view");
+    skyboxProjLoc = f->glGetUniformLocation(skyboxProgramID, "projection");
+
     emit shaderCompiled(0);
     emit shaderCompiled(1);
+
+    skeletonSkybox();
+    textureSkybox();
 }
 
 void OpenGLView::resizeGL(int width, int height) {
@@ -114,9 +121,6 @@ void OpenGLView::resizeGL(int width, int height) {
         state.setCurrentProgram(progID);
         f->glUniformMatrix4fv(state.getProjectionUniform(), 1, GL_FALSE, state.getCurrentProjectionMatrix().constData());
     }
-
-    state.setCurrentProgram(skyboxProgramID);
-    f->glUniformMatrix4fv(state.getProjectionUniform(), 1, GL_FALSE, state.getCurrentProjectionMatrix().constData());
 
     //Resize viewport
     f->glViewport(0, 0, width, height);
@@ -181,28 +185,29 @@ void OpenGLView::skeletonSkybox() {
 
 void OpenGLView::textureSkybox() {
     const char* faces[6] = {
-        "../Textures/skybox1/pos_x.bmp",
-        "../Textures/skybox1/neg_x.bmp",
-        "../Textures/skybox1/pos_y.bmp",
-        "../Textures/skybox1/neg_y.bmp",
-        "../Textures/skybox1/pos_z.bmp",
-        "../Textures/skybox1/neg_z.bmp",
+        "Textures/skybox1/pos_x.bmp",
+        "Textures/skybox1/neg_x.bmp",
+        "Textures/skybox1/pos_y.bmp",
+        "Textures/skybox1/neg_y.bmp",
+        "Textures/skybox1/pos_z.bmp",
+        "Textures/skybox1/neg_z.bmp",
     };
 
     skyboxID = loadCubeMap(f, faces);
 }
 
 void OpenGLView::drawSkybox() {
+    f->glDepthFunc(GL_LEQUAL);
     f->glDepthMask(GL_FALSE);
-    f->glDisable(GL_LIGHTING);
-    f->glDisable(GL_BLEND);
 
     state.setCurrentProgram(skyboxProgramID);
 
     QMatrix4x4 view = state.getCurrentModelViewMatrix();
     view.setColumn(3, QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
 
-    f->glUniformMatrix4fv(state.getModelViewUniform(), 1, GL_FALSE, view.constData());
+    f->glUniformMatrix4fv(skyboxViewLoc, 1, GL_FALSE, view.constData());
+    f->glUniformMatrix4fv(skyboxProjLoc, 1, GL_FALSE,
+        state.getCurrentProjectionMatrix().constData());
 
     f->glBindVertexArray(skyboxVAO);
     f->glActiveTexture(GL_TEXTURE0);
@@ -211,8 +216,7 @@ void OpenGLView::drawSkybox() {
     f->glBindVertexArray(0);
 
     f->glDepthMask(GL_TRUE);
-    f->glEnable(GL_LIGHTING);
-    f->glEnable(GL_BLEND);
+    f->glDepthFunc(GL_LESS);
 }
 
 void OpenGLView::paintGL() {
