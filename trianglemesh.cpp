@@ -539,17 +539,9 @@ void TriangleMesh::drawVBO(RenderState& state) {
 // method determining whether the bounding box is in the frustum or outside
 bool TriangleMesh::isInsideFrustum(std::vector<Plane> planes)
 {
-    QVector3D cmin(boundingBoxMin.x(), boundingBoxMin.y(), boundingBoxMin.z());
-    QVector3D cmax(boundingBoxMax.x(), boundingBoxMax.y(), boundingBoxMax.z());
-
     for (auto& plane : planes)
     {
         QVector3D p(boundingBoxMid.x(), boundingBoxMid.y(), boundingBoxMid.z());
-        // QVector3D p(
-        //     (n.x() >= 0.0f) ? cmax.x() : cmin.x(),
-        //     (n.y() >= 0.0f) ? cmax.y() : cmin.y(),
-        //     (n.z() >= 0.0f) ? cmax.z() : cmin.z()
-        // );
 
         // equation xn - d = ax1+bx2+cx3-d > 0
         if (QVector3D::dotProduct(p, plane.n) - plane.d > 0.0f) {

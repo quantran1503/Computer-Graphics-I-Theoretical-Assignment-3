@@ -298,15 +298,15 @@ unsigned int OpenGLView::getTriangleCount() const
 
 void OpenGLView::setDefaults() {
     // scene Information
-    cameraPos = QVector3D(0.0f, 40.0f, 70.0f);
-    cameraDir = QVector3D(0.5f, -1.0f, -1.0f).normalized();
+    cameraPos = QVector3D(-12.0f, 32.0f, 32.0f);
+    cameraDir = QVector3D(0.3f, -1.2f, -0.8f).normalized();
     movementSpeed = 0.02f;
 
     angleX = std::atan2(cameraDir.x(), -cameraDir.z()) * 180.0f / M_PI;
     angleY = std::asin(cameraDir.y()) * 180.0f / M_PI;
 
     // light information
-    state.getLightPos() = Vec3f(0.0f, 10.0f, 40.0f);
+    state.getLightPos() = Vec3f(0.0f, 5.0f, 20.0f);
     lightMotionSpeed = 15.f;
     // mouse information
     mouseSensitivy = 1.0f;
