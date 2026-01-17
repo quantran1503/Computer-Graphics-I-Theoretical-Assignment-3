@@ -6,6 +6,7 @@
 #define TRIANGLEMESH_H
 
 #include <QOpenGLContext>
+#include <QVector3D>
 
 #include <vector>
 
@@ -31,6 +32,12 @@ private:
     typedef Vec3f Normal;
     typedef Vec3f Color;
     struct TexCoord { float u, v; };
+    // clip planes ax+by+cz-d=0
+    struct Plane {
+        QVector3D n;  // normal (a,b,c)
+        float d;      // distance
+    };
+
     typedef Vec3f Tangent;
 
     typedef std::vector<Triangle> Triangles;
@@ -207,6 +214,7 @@ private:
 
     // check if bounding box is visible in view frustum
     bool boundingBoxIsVisible(const RenderState& state);
+    bool isInsideFrustum(std::vector<Plane> planes);
 };
 
 
