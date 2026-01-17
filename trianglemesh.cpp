@@ -702,22 +702,23 @@ void TriangleMesh::generateSphere(QOpenGLFunctions_3_3_Core* f) {
     createAllVBOs();
 }
 
-void TriangleMesh::generateTerrain(unsigned int l, unsigned int w, unsigned int iterations) {
+void TriangleMesh::generateTerrain(int l, int w, unsigned int iterations) {
     // 3.1: Implement terrain generation.
     // The terrain should be a grid of size l x w nodes.
 
     // generate heightmap using The Fault Algorithm
-    int displacementType = rand() % 4;
+    int displacementType = rand() % 5;
     std::vector<std::vector<double>> heightmap = generateHeightmap(l, w, iterations, displacementType);
    
     vertices.clear();
     colors.clear();
     triangles.clear();
 
-    for (int x = 0; x < l; x++) 
-    for (int z = 0; z < w; z++)
+    // center vertices around the origin
+    for (int x = -l/2; x < l/2; x++) 
+    for (int z = -w/2; z < w/2; z++)
     {
-	    double height = heightmap[x][z];
+	    double height = heightmap[x + l/2][z + w/2];
 
     	// for each cell (x,z) add vertices (x, height, z)
         vertices.emplace_back(x, height, z);

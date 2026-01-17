@@ -157,7 +157,7 @@ public:
 
     void generateSphere(QOpenGLFunctions_3_3_Core* f);
 
-    void generateTerrain(unsigned int l, unsigned int w, unsigned int iterations);
+    void generateTerrain(int l, int w, unsigned int iterations);
     std::vector<std::vector<double>> generateHeightmap(int l, int w, int iterations, int displacementType);
     void calculateTerrainColor(double height, int displacementType);
 
