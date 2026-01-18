@@ -691,14 +691,11 @@ void TriangleMesh::generateSphere(QOpenGLFunctions_3_3_Core* f) {
     createAllVBOs();
 }
 
-void TriangleMesh::generateTerrain(int l, int w, unsigned int iterations) {
+void TriangleMesh::generateTerrain(int l, int w, std::vector<std::vector<double>>& heightmap, int displacementType) {
     // 3.1: Implement terrain generation.
     // The terrain should be a grid of size l x w nodes.
 
     // generate heightmap using The Fault Algorithm
-    int displacementType = rand() % 5;
-    std::vector<std::vector<double>> heightmap = generateHeightmap(l, w, iterations, displacementType);
-   
     vertices.clear();
     colors.clear();
     triangles.clear();
@@ -840,4 +837,15 @@ void TriangleMesh::calculateTerrainColor(double height, int displacementType)
     }
     
     colors.push_back(color);
+}
+
+void TriangleMesh::setAirplanePosition(const std::vector<std::vector<double>>& heightmap, int l, int w)
+{
+    int randX = rand() % l;
+    int randZ = rand() % w;
+
+    // position = (x, y, z);
+	position.x() = randX - static_cast<float>(l) / 2;
+	position.z() = randZ - static_cast<float>(w) / 2;
+    position.y() = heightmap[randX][randZ] + 2.f;
 }

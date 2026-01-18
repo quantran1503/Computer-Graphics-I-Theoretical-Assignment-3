@@ -25,6 +25,9 @@ public:
         TEXTURE,
         BUMP_MAPPING,
     };
+
+    Vec3f position;
+
 private:
     // typedefs for data
     typedef Vec3ui Triangle;
@@ -157,10 +160,11 @@ public:
 
     void generateSphere(QOpenGLFunctions_3_3_Core* f);
 
-    void generateTerrain(int l, int w, unsigned int iterations);
+    void generateTerrain(int l, int w, std::vector<std::vector<double>>& heightmap, int displacementType);
     std::vector<std::vector<double>> generateHeightmap(int l, int w, int iterations, int displacementType);
     void calculateTerrainColor(double height, int displacementType);
 
+    void setAirplanePosition(const std::vector<std::vector<double>>& heightmap, int l, int w);
 
 private:
     // calculate normals, weighted by area
