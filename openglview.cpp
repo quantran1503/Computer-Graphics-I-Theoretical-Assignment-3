@@ -67,12 +67,10 @@ void OpenGLView::initializeGL()
     meshes[0].setColoringMode(TriangleMesh::ColoringType::TEXTURE);
 
     meshes.emplace_back(f);
-    int displacementType = rand() % 5, l = 50, w = 50;
-    heightmap = meshes[1].generateHeightmap(l, w, 4000, displacementType);
-    meshes[1].generateTerrain(l, w, heightmap, displacementType);
+    int displacementType = rand() % 5;
+    heightmap = meshes[1].generateHeightmap(length, width, 4000, displacementType);
+    meshes[1].generateTerrain(length, width, heightmap, displacementType);
     meshes[1].setColoringMode(TriangleMesh::ColoringType::COLOR_ARRAY);
-
-    int numAirplanes = 20;
 
     airplaneMeshes = std::vector<TriangleMesh>(numAirplanes);
     for (int i = 0; i < numAirplanes; i++)
@@ -81,7 +79,7 @@ void OpenGLView::initializeGL()
         airplaneMeshes[i].setGLFunctionPtr(f);
         airplaneMeshes[i].loadOBJ("Models/doppeldecker.obj");
         airplaneMeshes[i].setStaticColor(Vec3f(r, g, b));
-        airplaneMeshes[i].setAirplanePosition(heightmap, l, w);
+        airplaneMeshes[i].setAirplanePosition(heightmap, length, width);
         airplaneMeshes[i].setTexture(testTexture);
         airplaneMeshes[i].setColoringMode(TriangleMesh::ColoringType::TEXTURE);
     }
@@ -362,7 +360,10 @@ void OpenGLView::setDefaults() {
     // mouse information
     mouseSensitivy = 1.0f;
 
-    gridSize = 3;
+    gridSize = 1;
+    numAirplanes = 20;
+    length = 50, width = 50;
+
     // last run: 0 objects and 0 triangles
     objectsLastRun = 0;
     trianglesLastRun = 0;
@@ -428,7 +429,7 @@ void OpenGLView::changeShader(unsigned int index) {
     } catch (std::out_of_range& ex) {
         qFatal("Tried to access shader index that has not been loaded! %s", ex.what());
     }
-	resizeGL(width(), height());
+	resizeGL(QWidget::width(), QWidget::height());
     doneCurrent();
 }
 
@@ -475,11 +476,28 @@ void OpenGLView::toggleDisplacementMapping(bool enable)
 void OpenGLView::recreateTerrain()
 {
     makeCurrent();
+
     meshes[1].clear();
     int displacementType = rand() % 5;
     heightmap = meshes[1].generateHeightmap(50, 50, 4000, displacementType);
-    meshes[1].generateTerrain(50, 50, heightmap, displacementType);
+    meshes[1].generateTerrain(length, width, heightmap, displacementType);
     meshes[1].setColoringMode(TriangleMesh::ColoringType::COLOR_ARRAY);
+
+    GLuint testTexture = loadImageIntoTexture(f, "../Textures/TEST_GRID.bmp");
+    airplaneMeshes.clear();
+
+    airplaneMeshes = std::vector<TriangleMesh>(numAirplanes);
+    for (int i = 0; i < numAirplanes; i++)
+    {
+        float r = static_cast <float>(rand()) / static_cast <float>(RAND_MAX), g = static_cast <float>(rand()) / static_cast <float>(RAND_MAX), b = static_cast <float>(rand()) / static_cast <float>(RAND_MAX);
+        airplaneMeshes[i].setGLFunctionPtr(f);
+    	airplaneMeshes[i].loadOBJ("Models/doppeldecker.obj");
+    	airplaneMeshes[i].setStaticColor(Vec3f(r, g, b));
+    	airplaneMeshes[i].setAirplanePosition(heightmap, length, width);
+        airplaneMeshes[i].setTexture(testTexture);
+        airplaneMeshes[i].setColoringMode(TriangleMesh::ColoringType::TEXTURE);
+    }
+
     doneCurrent();
 }
 

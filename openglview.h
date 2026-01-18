@@ -71,7 +71,7 @@ private:
     QPoint mousePos;
     float mouseSensitivy;
 
-    //rendered objects
+    // rendered objects
     unsigned int objectsLastRun, trianglesLastRun, culledObjectsLastRun;
     std::vector<TriangleMesh> meshes;
     std::vector<TriangleMesh> airplaneMeshes;
@@ -80,7 +80,7 @@ private:
     TriangleMesh bumpSphereMesh;
 
     static GLuint csVAO, csVBOs[2];
-    int gridSize;
+    int gridSize, numAirplanes, length, width;
 
     //light information
     float lightMotionSpeed;
