@@ -246,7 +246,7 @@ void OpenGLView::paintGL() {
 
     drawLight();
 
-    unsigned int trianglesDrawn = 0, culledObjectsCount = 0;
+    unsigned int trianglesDrawn = 0, drawnObjectsCount = 0, culledObjectsCount = 0;
     bool isBoundingBoxVisible = false;
 
     // draw bump mapping sphere
@@ -257,39 +257,52 @@ void OpenGLView::paintGL() {
     isBoundingBoxVisible = bumpSphereMesh.isBoundingBoxVisible(state);
     if (!isBoundingBoxVisible)
         culledObjectsCount++;
-    else 
-		trianglesDrawn += bumpSphereMesh.drawAndCountTriangles(state);
+    else
+    {
+        drawnObjectsCount++;
+        trianglesDrawn += bumpSphereMesh.drawAndCountTriangles(state);
+    }
     state.popModelViewMatrix();
 
     state.setCurrentProgram(currentProgramID);
     state.setLightUniform();
 
     // draw airplanes count triangles and objects drawn.
-    for (auto& airplaneMesh : airplaneMeshes)
+    float angle = 360.0f / numAirplanes;
+    for (int i = 0; i < airplaneMeshes.size(); i++)
     {
         state.pushModelViewMatrix();
 
-        // state.getCurrentModelViewMatrix().rotate(randomRotation, 0, 1, 0);
-        state.getCurrentModelViewMatrix().translate(airplaneMesh.position.x(), airplaneMesh.position.y(), airplaneMesh.position.z());
-        isBoundingBoxVisible = airplaneMesh.isBoundingBoxVisible(state);
+        state.getCurrentModelViewMatrix().translate(airplaneMeshes[i].position.x(), airplaneMeshes[i].position.y(), airplaneMeshes[i].position.z());
+        state.getCurrentModelViewMatrix().rotate(angle * i, 0.f, 1.f, 0.f);
+
+        isBoundingBoxVisible = airplaneMeshes[i].isBoundingBoxVisible(state);
         if (!isBoundingBoxVisible)
             culledObjectsCount++;
         else
-            trianglesDrawn += airplaneMesh.drawAndCountTriangles(state);
+        {
+            drawnObjectsCount++;
+            trianglesDrawn += airplaneMeshes[i].drawAndCountTriangles(state);
+        }
 
         state.popModelViewMatrix();
     }
 
-    isBoundingBoxVisible = terrainMesh.isBoundingBoxVisible(state);
-    if (!isBoundingBoxVisible)
-        culledObjectsCount++;
-    else
-        trianglesDrawn += terrainMesh.drawAndCountTriangles(state);
+    // isBoundingBoxVisible = terrainMesh.isBoundingBoxVisible(state);
+    // if (!isBoundingBoxVisible)
+    //     culledObjectsCount++;
+    // else
+    //     trianglesDrawn += terrainMesh.drawAndCountTriangles(state);
+    terrainMesh.drawAndCountTriangles(state);
 
     // cout number of objects and triangles if different from last run
     if (trianglesDrawn != trianglesLastRun) {
         trianglesLastRun = trianglesDrawn;
         emit triangleCountChanged(trianglesDrawn);
+    }
+    if (drawnObjectsCount != drawnObjectsLastRun) {
+        drawnObjectsLastRun = drawnObjectsCount;
+        emit drawnObjectsCountChanged(drawnObjectsCount);
     }
     if (culledObjectsCount != culledObjectsLastRun) {
         culledObjectsLastRun = culledObjectsCount;
@@ -345,7 +358,7 @@ void OpenGLView::setDefaults() {
     mouseSensitivy = 1.0f;
 
     gridSize = 1;
-    numAirplanes = 50;
+    numAirplanes = 100;
     length = 50, width = 50;
 
     // last run: 0 objects and 0 triangles

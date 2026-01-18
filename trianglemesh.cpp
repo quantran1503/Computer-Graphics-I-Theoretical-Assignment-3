@@ -788,7 +788,7 @@ void TriangleMesh::calculateTerrainColor(double height, int displacementType)
     Vec3f forest(0.0f, 0.4f, 0.0f);         // forest green
     Vec3f mountain(0.6f, 0.4f, 0.2f);       // brown
     Vec3f rock(0.5f, 0.5f, 0.5f);           // grey
-    Vec3f snow(1.0f, 1.0f, 1.0f);           // white
+    Vec3f snow(0.95f, 0.95f, 0.95f);        // white
 
     Vec3f color = 0;
 
@@ -866,8 +866,8 @@ void TriangleMesh::copyObject(const TriangleMesh& source, bool createVBOs) {
 
 void TriangleMesh::setAirplanePosition(const std::vector<std::vector<double>>& heightmap, int l, int w)
 {
-    int randX = rand() % l;
-    int randZ = rand() % w;
+    int randX = rand() % (l - 1) + 1;
+    int randZ = rand() % (w - 1) + 1;
 
     // position = (x, y, z);
 	position.x() = randX - static_cast<float>(l) / 2;

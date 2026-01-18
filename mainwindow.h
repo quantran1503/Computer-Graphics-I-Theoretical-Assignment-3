@@ -31,6 +31,7 @@ private slots:
 public slots:
     void changeFpsCount(unsigned int fps);
     void changeTriangleCount(unsigned int triangles);
+    void changeDrawnObjectsCount(unsigned int drawnObjects);
     void changeCulledObjectsCount(unsigned int culledObjects);
 
 public:
@@ -46,6 +47,7 @@ private:
     Ui::MainWindow *ui;
     unsigned int fpsCount = 0;
     unsigned int triangleCount = 0;
+    unsigned int drawnObjectsCount = 0;
     unsigned int culledObjectsCount = 0;
     void refreshStatusBarMessage() const;
 

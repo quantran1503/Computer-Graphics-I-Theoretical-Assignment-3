@@ -56,6 +56,7 @@ protected:
 signals:
     void fpsCountChanged(int newFps);
     void triangleCountChanged(unsigned int newTriangles);
+    void drawnObjectsCountChanged(unsigned int drawnObjects);
     void culledObjectsCountChanged(unsigned int culledObjects);
     void shaderCompiled(unsigned int index);
 
@@ -72,7 +73,7 @@ private:
     float mouseSensitivy;
 
     // rendered objects
-    unsigned int objectsLastRun, trianglesLastRun, culledObjectsLastRun;
+    unsigned int objectsLastRun, trianglesLastRun, drawnObjectsLastRun, culledObjectsLastRun;
     std::vector<TriangleMesh> airplaneMeshes;
     std::vector<std::vector<double>> heightmap;
     TriangleMesh terrainMesh;

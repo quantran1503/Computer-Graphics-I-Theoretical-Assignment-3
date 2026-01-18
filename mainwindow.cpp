@@ -18,7 +18,7 @@
 #include "./ui_mainwindow.h"
 
 void MainWindow::refreshStatusBarMessage() const {
-    statusBar()->showMessage(tr("FPS: %1, Triangles: %2, Culled Obj: %3").arg(fpsCount).arg(triangleCount).arg(culledObjectsCount));
+    statusBar()->showMessage(tr("FPS: %1, Triangles: %2, Drawn Obj: %3, Culled Obj: %4").arg(fpsCount).arg(triangleCount).arg(drawnObjectsCount).arg(culledObjectsCount));
 }
 
 void MainWindow::changeFpsCount(unsigned int fps)
@@ -30,6 +30,12 @@ void MainWindow::changeFpsCount(unsigned int fps)
 void MainWindow::changeTriangleCount(unsigned int triangles)
 {
     triangleCount = triangles;
+    refreshStatusBarMessage();
+}
+
+void MainWindow::changeDrawnObjectsCount(unsigned int drawnObjects)
+{
+    drawnObjectsCount = drawnObjects;
     refreshStatusBarMessage();
 }
 
@@ -60,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->openGLWidget, &OpenGLView::fpsCountChanged, this, &MainWindow::changeFpsCount);
     connect(ui->openGLWidget, &OpenGLView::triangleCountChanged, this, &MainWindow::changeTriangleCount);
+    connect(ui->openGLWidget, &OpenGLView::drawnObjectsCountChanged, this, &MainWindow::changeDrawnObjectsCount);
     connect(ui->openGLWidget, &OpenGLView::culledObjectsCountChanged, this, &MainWindow::changeCulledObjectsCount);
 
     connect(ui->openGLWidget, &OpenGLView::shaderCompiled, this, &MainWindow::addShaderToList, Qt::QueuedConnection);
