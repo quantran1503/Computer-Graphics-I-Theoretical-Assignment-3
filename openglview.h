@@ -56,6 +56,7 @@ protected:
 signals:
     void fpsCountChanged(int newFps);
     void triangleCountChanged(unsigned int newTriangles);
+    void culledObjectsCountChanged(unsigned int culledObjects);
     void shaderCompiled(unsigned int index);
 
 private:
@@ -71,7 +72,7 @@ private:
     float mouseSensitivy;
 
     //rendered objects
-    unsigned int objectsLastRun, trianglesLastRun;
+    unsigned int objectsLastRun, trianglesLastRun, culledObjectsLastRun;
     std::vector<TriangleMesh> meshes;
     TriangleMesh sphereMesh; // sun
     TriangleMesh bumpSphereMesh;

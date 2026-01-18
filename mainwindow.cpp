@@ -18,7 +18,13 @@
 #include "./ui_mainwindow.h"
 
 void MainWindow::refreshStatusBarMessage() const {
-    statusBar()->showMessage(tr("FPS: %1, Triangles: %2").arg(fpsCount).arg(triangleCount));
+    statusBar()->showMessage(tr("FPS: %1, Triangles: %2, Culled Obj: %3").arg(fpsCount).arg(triangleCount).arg(culledObjectsCount));
+}
+
+void MainWindow::changeFpsCount(unsigned int fps)
+{
+    fpsCount = fps;
+    refreshStatusBarMessage();
 }
 
 void MainWindow::changeTriangleCount(unsigned int triangles)
@@ -27,9 +33,9 @@ void MainWindow::changeTriangleCount(unsigned int triangles)
     refreshStatusBarMessage();
 }
 
-void MainWindow::changeFpsCount(unsigned int fps)
+void MainWindow::changeCulledObjectsCount(unsigned int culledObjects)
 {
-    fpsCount = fps;
+    culledObjectsCount = culledObjects;
     refreshStatusBarMessage();
 }
 
@@ -52,8 +58,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->drawNormalCheckBox, &QCheckBox::clicked, ui->openGLWidget, &OpenGLView::toggleNormals);
     connect(ui->genTerrainButton, &QPushButton::clicked, ui->openGLWidget, &OpenGLView::recreateTerrain);
 
-    connect(ui->openGLWidget, &OpenGLView::triangleCountChanged, this, &MainWindow::changeTriangleCount);
     connect(ui->openGLWidget, &OpenGLView::fpsCountChanged, this, &MainWindow::changeFpsCount);
+    connect(ui->openGLWidget, &OpenGLView::triangleCountChanged, this, &MainWindow::changeTriangleCount);
+    connect(ui->openGLWidget, &OpenGLView::culledObjectsCountChanged, this, &MainWindow::changeCulledObjectsCount);
+
     connect(ui->openGLWidget, &OpenGLView::shaderCompiled, this, &MainWindow::addShaderToList, Qt::QueuedConnection);
 
     ui->openGLWidget->setGridSize(ui->gridSizeSpinBox->value());

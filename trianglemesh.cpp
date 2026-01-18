@@ -445,9 +445,11 @@ void TriangleMesh::cleanupVBO(QOpenGLFunctions_3_3_Core* f) {
     VBOvn.val = 0;
 }
 
-unsigned int TriangleMesh::draw(RenderState& state) {
-    if (!boundingBoxIsVisible(state)) return 0;
-    if (VAO.val == 0) return 0;
+// a method to draw the triangles and return the size of triangles
+unsigned int TriangleMesh::drawAndCountTriangles(RenderState& state) {
+    if (VAO.val == 0) 
+        return 0;
+
     if (withBB || withNormals) {
         GLuint formerProgram = state.getCurrentProgram();
         state.switchToStandardProgram();
@@ -545,14 +547,14 @@ bool TriangleMesh::isInsideFrustum(std::vector<Plane> planes)
 
         // equation xn - d = ax1+bx2+cx3-d > 0
         if (QVector3D::dotProduct(p, plane.n) - plane.d > 0.0f) {
-            return false; // return early if the box is outside any planes to cull this obj
+            return false; // return if the box is outside any planes to cull this obj early
         }
     }
 
 	return true;
 }
 
-bool TriangleMesh::boundingBoxIsVisible(const RenderState& state) {
+bool TriangleMesh::isBoundingBoxVisible(const RenderState& state) {
     // 3.3 Implement view frustum culling.
     // projectionMatrix and model view matrix in 4x4
     QMatrix4x4 projection = state.getCurrentProjectionMatrix();
@@ -598,12 +600,7 @@ bool TriangleMesh::boundingBoxIsVisible(const RenderState& state) {
         plane.d /= magnitude;
     }
 
-    int culled = 0;
-    bool shouldDraw = isInsideFrustum(planes);
-    if (!shouldDraw)
-        culled++;
-
-    return shouldDraw;
+    return isInsideFrustum(planes);
 }
 
 void TriangleMesh::setStaticColor(Vec3f color) {

@@ -195,7 +195,9 @@ public:
     void setColoringMode(ColoringType type) { coloringType = type; };
 
     // draw mesh with current drawing mode settings. returns the number of triangles drawn.
-    unsigned int draw(RenderState& state);
+    unsigned int drawAndCountTriangles(RenderState& state);
+
+    bool isBoundingBoxVisible(const RenderState& state);
 
 private:
 
@@ -213,7 +215,6 @@ private:
     // ===========
 
     // check if bounding box is visible in view frustum
-    bool boundingBoxIsVisible(const RenderState& state);
     bool isInsideFrustum(std::vector<Plane> planes);
 };
 

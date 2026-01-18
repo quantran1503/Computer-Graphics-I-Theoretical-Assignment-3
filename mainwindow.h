@@ -29,8 +29,9 @@ private slots:
     void setColoringMode(unsigned int index);
 
 public slots:
-    void changeTriangleCount(unsigned int triangles);
     void changeFpsCount(unsigned int fps);
+    void changeTriangleCount(unsigned int triangles);
+    void changeCulledObjectsCount(unsigned int culledObjects);
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -45,6 +46,7 @@ private:
     Ui::MainWindow *ui;
     unsigned int fpsCount = 0;
     unsigned int triangleCount = 0;
+    unsigned int culledObjectsCount = 0;
     void refreshStatusBarMessage() const;
 
     // mouse information

@@ -223,7 +223,7 @@ void OpenGLView::paintGL() {
     f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     state.loadIdentityModelViewMatrix();
 
-    //translate to center, rotate and render coordinate system and light sphere
+    // translate to center, rotate and render coordinate system and light sphere
     QVector3D cameraLookAt = cameraPos + cameraDir;
     static QVector3D upVector(0.0f, 1.0f, 0.0f);
     state.getCurrentModelViewMatrix().lookAt(cameraPos, cameraLookAt, upVector);
@@ -231,36 +231,58 @@ void OpenGLView::paintGL() {
     state.switchToStandardProgram();
     drawCS();
 
-    if (lightMoves) moveLight();
+    if (lightMoves) 
+        moveLight();
 
     drawLight();
 
-    unsigned int trianglesDrawn = 0;
+    unsigned int trianglesDrawn = 0, culledObjectsCount = 0;
+    bool isBoundingBoxVisible = false;
+
     // draw bump mapping sphere
     state.setCurrentProgram(bumpProgramID);
     state.pushModelViewMatrix();
     state.setLightUniform();
     state.getCurrentModelViewMatrix().translate(0, 5, 0);
-    trianglesDrawn += bumpSphereMesh.draw(state);
+    isBoundingBoxVisible = bumpSphereMesh.isBoundingBoxVisible(state);
+    if (!isBoundingBoxVisible)
+        culledObjectsCount++;
+    else 
+		trianglesDrawn += bumpSphereMesh.drawAndCountTriangles(state);
     state.popModelViewMatrix();
 
     state.setCurrentProgram(currentProgramID);
     state.setLightUniform();
 
-    // draw objects. count triangles and objects drawn.
+    // draw airplanes count triangles and objects drawn.
     state.pushModelViewMatrix();
-    for (int i = 0; i < gridSize; ++i) {
-        state.getCurrentModelViewMatrix().translate(static_cast<float>(1.f), 0.f);
-        trianglesDrawn += meshes[0].draw(state);
+    int random = rand();
+    for (int i = 0; i < gridSize; i++) {
+        state.getCurrentModelViewMatrix().translate(1.f, 0.f);
+        isBoundingBoxVisible = meshes[0].isBoundingBoxVisible(state);
+        if (!isBoundingBoxVisible)
+            culledObjectsCount++;
+        else
+            trianglesDrawn += meshes[0].drawAndCountTriangles(state);
     }
     state.popModelViewMatrix();
-    for (size_t i = 1; i < meshes.size(); ++i) {
-        trianglesDrawn += meshes[i].draw(state);
+
+    for (size_t i = 1; i < meshes.size(); i++) {
+        isBoundingBoxVisible = meshes[i].isBoundingBoxVisible(state);
+        if (!isBoundingBoxVisible)
+            culledObjectsCount++;
+        else
+            trianglesDrawn += meshes[i].drawAndCountTriangles(state);
     }
+
     // cout number of objects and triangles if different from last run
     if (trianglesDrawn != trianglesLastRun) {
         trianglesLastRun = trianglesDrawn;
         emit triangleCountChanged(trianglesDrawn);
+    }
+    if (culledObjectsCount != culledObjectsLastRun) {
+        culledObjectsLastRun = culledObjectsCount;
+        emit culledObjectsCountChanged(culledObjectsCount);
     }
 
     frameCounter++;
@@ -280,7 +302,7 @@ void OpenGLView::drawLight() {
     Vec3f& lp = state.getLightPos();
     state.getCurrentModelViewMatrix().translate(lp.x(), lp.y(), lp.z());
     state.getCurrentModelViewMatrix().scale(2, 2, 2);
-    sphereMesh.draw(state);
+    sphereMesh.drawAndCountTriangles(state);
     state.popModelViewMatrix();
 }
 
