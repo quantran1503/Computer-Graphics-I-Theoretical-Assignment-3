@@ -839,6 +839,31 @@ void TriangleMesh::calculateTerrainColor(double height, int displacementType)
     colors.push_back(color);
 }
 
+void TriangleMesh::copyObject(const TriangleMesh& source, bool createVBOs) {
+    clear();
+
+    // copy mesh data
+    vertices = source.vertices;
+    triangles = source.triangles;
+    normals = source.normals;
+    texCoords = source.texCoords;
+    tangents = source.tangents;
+
+    // copy bounding box data
+    boundingBoxMin = source.boundingBoxMin;
+    boundingBoxMax = source.boundingBoxMax;
+    boundingBoxMid = source.boundingBoxMid;
+    boundingBoxSize = source.boundingBoxSize;
+
+    // copy OpenGL function pointer
+    f = source.f;
+
+    // Create VBOs if requested
+    if (createVBOs) {
+        createAllVBOs();
+    }
+}
+
 void TriangleMesh::setAirplanePosition(const std::vector<std::vector<double>>& heightmap, int l, int w)
 {
     int randX = rand() % l;

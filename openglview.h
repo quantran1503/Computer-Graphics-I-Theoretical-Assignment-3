@@ -73,9 +73,9 @@ private:
 
     // rendered objects
     unsigned int objectsLastRun, trianglesLastRun, culledObjectsLastRun;
-    std::vector<TriangleMesh> meshes;
     std::vector<TriangleMesh> airplaneMeshes;
     std::vector<std::vector<double>> heightmap;
+    TriangleMesh terrainMesh;
     TriangleMesh sphereMesh; // sun
     TriangleMesh bumpSphereMesh;
 

@@ -163,6 +163,7 @@ public:
     void generateTerrain(int l, int w, std::vector<std::vector<double>>& heightmap, int displacementType);
     std::vector<std::vector<double>> generateHeightmap(int l, int w, int iterations, int displacementType);
     void calculateTerrainColor(double height, int displacementType);
+    void copyObject(const TriangleMesh& source, bool createVBOs);
 
     void setAirplanePosition(const std::vector<std::vector<double>>& heightmap, int l, int w);
 

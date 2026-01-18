@@ -59,25 +59,22 @@ void OpenGLView::initializeGL()
     sphereMesh.loadOBJ("Models/sphere.obj");
     sphereMesh.setStaticColor(Vec3f(1.0f, 1.0f, 0.0f));
 
-    // load meshes
-    meshes.emplace_back(f);
-    meshes[0].loadOBJ("Models/doppeldecker.obj");
-    meshes[0].setStaticColor(Vec3f(0.0f, 1.0f, 0.0f));
-    meshes[0].setTexture(testTexture);
-    meshes[0].setColoringMode(TriangleMesh::ColoringType::TEXTURE);
-
-    meshes.emplace_back(f);
     int displacementType = rand() % 5;
-    heightmap = meshes[1].generateHeightmap(length, width, 4000, displacementType);
-    meshes[1].generateTerrain(length, width, heightmap, displacementType);
-    meshes[1].setColoringMode(TriangleMesh::ColoringType::COLOR_ARRAY);
+    terrainMesh.setGLFunctionPtr(f);
+    heightmap = terrainMesh.generateHeightmap(length, width, 4000, displacementType);
+    terrainMesh.generateTerrain(length, width, heightmap, displacementType);
+    terrainMesh.setColoringMode(TriangleMesh::ColoringType::COLOR_ARRAY);
+
+    // load obj once
+    TriangleMesh airplaneTemplate(f);
+    airplaneTemplate.loadOBJ("Models/doppeldecker.obj", false);
 
     airplaneMeshes = std::vector<TriangleMesh>(numAirplanes);
     for (int i = 0; i < numAirplanes; i++)
     {
         float r = static_cast <float>(rand()) / static_cast <float>(RAND_MAX), g = static_cast <float>(rand()) / static_cast <float>(RAND_MAX), b = static_cast <float>(rand()) / static_cast <float>(RAND_MAX);
         airplaneMeshes[i].setGLFunctionPtr(f);
-        airplaneMeshes[i].loadOBJ("Models/doppeldecker.obj");
+        airplaneMeshes[i].copyObject(airplaneTemplate, true); // copy from template
         airplaneMeshes[i].setStaticColor(Vec3f(r, g, b));
         airplaneMeshes[i].setAirplanePosition(heightmap, length, width);
         airplaneMeshes[i].setTexture(testTexture);
@@ -283,24 +280,11 @@ void OpenGLView::paintGL() {
         state.popModelViewMatrix();
     }
 
-    state.pushModelViewMatrix();
-    for (int i = 0; i < gridSize; i++) {
-        state.getCurrentModelViewMatrix().translate(1.f, 0.f);
-        isBoundingBoxVisible = meshes[0].isBoundingBoxVisible(state);
-        if (!isBoundingBoxVisible)
-            culledObjectsCount++;
-        else
-            trianglesDrawn += meshes[0].drawAndCountTriangles(state);
-    }
-    state.popModelViewMatrix();
-
-    for (size_t i = 1; i < meshes.size(); i++) {
-        isBoundingBoxVisible = meshes[i].isBoundingBoxVisible(state);
-        if (!isBoundingBoxVisible)
-            culledObjectsCount++;
-        else
-            trianglesDrawn += meshes[i].drawAndCountTriangles(state);
-    }
+    isBoundingBoxVisible = terrainMesh.isBoundingBoxVisible(state);
+    if (!isBoundingBoxVisible)
+        culledObjectsCount++;
+    else
+        trianglesDrawn += terrainMesh.drawAndCountTriangles(state);
 
     // cout number of objects and triangles if different from last run
     if (trianglesDrawn != trianglesLastRun) {
@@ -361,7 +345,7 @@ void OpenGLView::setDefaults() {
     mouseSensitivy = 1.0f;
 
     gridSize = 1;
-    numAirplanes = 20;
+    numAirplanes = 50;
     length = 50, width = 50;
 
     // last run: 0 objects and 0 triangles
@@ -443,18 +427,24 @@ void OpenGLView::compileShader(const QString& vertexShaderPath, const QString& f
 
 void OpenGLView::changeColoringMode(TriangleMesh::ColoringType type)
 {
-    for (auto& mesh: meshes) mesh.setColoringMode(type);
+    terrainMesh.setColoringMode(type);
 }
 
 void OpenGLView::toggleBoundingBox(bool enable)
 {
-    for (auto& mesh: meshes) mesh.toggleBB(enable);
+    for (auto& mesh: airplaneMeshes)
+	    mesh.toggleBB(enable);
+
+	terrainMesh.toggleBB(enable);
     bumpSphereMesh.toggleBB(enable);
 }
 
 void OpenGLView::toggleNormals(bool enable)
 {
-    for (auto& mesh: meshes) mesh.toggleNormals(enable);
+    for (auto& mesh : airplaneMeshes)
+        mesh.toggleNormals(enable);
+
+    terrainMesh.toggleNormals(enable);
     bumpSphereMesh.toggleNormals(enable);
 }
 
@@ -477,21 +467,24 @@ void OpenGLView::recreateTerrain()
 {
     makeCurrent();
 
-    meshes[1].clear();
+    terrainMesh.clear();
     int displacementType = rand() % 5;
-    heightmap = meshes[1].generateHeightmap(50, 50, 4000, displacementType);
-    meshes[1].generateTerrain(length, width, heightmap, displacementType);
-    meshes[1].setColoringMode(TriangleMesh::ColoringType::COLOR_ARRAY);
+    heightmap = terrainMesh.generateHeightmap(50, 50, 4000, displacementType);
+    terrainMesh.generateTerrain(length, width, heightmap, displacementType);
+    terrainMesh.setColoringMode(TriangleMesh::ColoringType::COLOR_ARRAY);
 
     GLuint testTexture = loadImageIntoTexture(f, "../Textures/TEST_GRID.bmp");
     airplaneMeshes.clear();
+
+    TriangleMesh airplaneTemplate(f);
+    airplaneTemplate.loadOBJ("Models/doppeldecker.obj", false);
 
     airplaneMeshes = std::vector<TriangleMesh>(numAirplanes);
     for (int i = 0; i < numAirplanes; i++)
     {
         float r = static_cast <float>(rand()) / static_cast <float>(RAND_MAX), g = static_cast <float>(rand()) / static_cast <float>(RAND_MAX), b = static_cast <float>(rand()) / static_cast <float>(RAND_MAX);
         airplaneMeshes[i].setGLFunctionPtr(f);
-    	airplaneMeshes[i].loadOBJ("Models/doppeldecker.obj");
+        airplaneMeshes[i].copyObject(airplaneTemplate, true); // copy from template
     	airplaneMeshes[i].setStaticColor(Vec3f(r, g, b));
     	airplaneMeshes[i].setAirplanePosition(heightmap, length, width);
         airplaneMeshes[i].setTexture(testTexture);
