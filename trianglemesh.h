@@ -220,7 +220,7 @@ private:
     // ===========
 
     // check if bounding box is visible in view frustum
-    bool isInsideFrustum(std::vector<Plane> planes);
+    bool isInsideFrustum(std::vector<Plane> planes, QMatrix4x4 mvp);
 };
 
 

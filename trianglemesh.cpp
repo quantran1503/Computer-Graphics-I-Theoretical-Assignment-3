@@ -539,16 +539,39 @@ void TriangleMesh::drawVBO(RenderState& state) {
 // ===========
 
 // method determining whether the bounding box is in the frustum or outside
-bool TriangleMesh::isInsideFrustum(std::vector<Plane> planes)
+bool TriangleMesh::isInsideFrustum(std::vector<Plane> planes, QMatrix4x4 mvp)
 {
+    // use bounding box min max to define 8 corners
+    Vec3f corners[8] = {
+        Vec3f(boundingBoxMin.x(), boundingBoxMin.y(), boundingBoxMin.z()), // x y z
+        Vec3f(boundingBoxMax.x(), boundingBoxMin.y(), boundingBoxMin.z()), // X y z
+        Vec3f(boundingBoxMin.x(), boundingBoxMax.y(), boundingBoxMin.z()), // x Y z
+        Vec3f(boundingBoxMax.x(), boundingBoxMax.y(), boundingBoxMin.z()), // X Y z
+        Vec3f(boundingBoxMin.x(), boundingBoxMin.y(), boundingBoxMax.z()), // x y Z
+        Vec3f(boundingBoxMax.x(), boundingBoxMin.y(), boundingBoxMax.z()), // X y Z
+        Vec3f(boundingBoxMin.x(), boundingBoxMax.y(), boundingBoxMax.z()), // x Y Z
+        Vec3f(boundingBoxMax.x(), boundingBoxMax.y(), boundingBoxMax.z())  // X Y Z
+    };
+
     for (auto& plane : planes)
     {
-        QVector3D p(boundingBoxMid.x(), boundingBoxMid.y(), boundingBoxMid.z());
-
-        // equation xn - d = ax1+bx2+cx3-d > 0
-        if (QVector3D::dotProduct(p, plane.n) - plane.d > 0.0f) {
-            return false; // return if the box is outside any planes to cull this obj early
-        }
+        int cornersOutside = 0;
+	    for (auto& c : corners)
+	    {
+            QVector4D corner(c.x(), c.y(), c.z(), 1.0f);
+            QVector4D transformed = mvp * corner; // transform corner to world space
+     
+            if (transformed.w() != 0.0f) 
+                transformed /= transformed.w();
+            
+            // convert back to 3D coordinate
+            QVector3D transformed3D = transformed.toVector3D();
+            if (QVector3D::dotProduct(transformed3D, plane.n) - plane.d > 0.0f)
+                cornersOutside++;
+	    }
+     
+        if (cornersOutside == 8)
+            return false;
     }
 
 	return true;
@@ -560,11 +583,11 @@ bool TriangleMesh::isBoundingBoxVisible(const RenderState& state) {
     QMatrix4x4 projection = state.getCurrentProjectionMatrix();
 	QMatrix4x4 modelView = state.getCurrentModelViewMatrix();
 
-    // product of projection matrix and vertex
-	QMatrix4x4 VP = projection * modelView;
+    // product of projection matrix and vertex => Model-View-Projection matrix
+	QMatrix4x4 MVP = projection * modelView;
 
 	// raw data of VP matrix
-    float* vp = VP.data();
+    float* mvp = MVP.data();
     /*
     m[0] m[4] m[ 8] m[12]
     m[1] m[5] m[ 9] m[13]
@@ -574,23 +597,23 @@ bool TriangleMesh::isBoundingBoxVisible(const RenderState& state) {
 
     std::vector<Plane> planes(6);
     // left plane
-    planes[0].n = QVector3D(vp[3] + vp[0], vp[7] + vp[4], vp[11] + vp[8]);
-    planes[0].d = vp[15] + vp[12];
+    planes[0].n = QVector3D(mvp[3] + mvp[0], mvp[7] + mvp[4], mvp[11] + mvp[8]);
+    planes[0].d = mvp[15] + mvp[12];
 	// right plane
-	planes[1].n = QVector3D(vp[3] - vp[0], vp[7] - vp[4], vp[11] - vp[8]);
-	planes[1].d = vp[15] - vp[12];
+	planes[1].n = QVector3D(mvp[3] - mvp[0], mvp[7] - mvp[4], mvp[11] - mvp[8]);
+	planes[1].d = mvp[15] - mvp[12];
     // bottom plane
-    planes[2].n = QVector3D(vp[3] + vp[1], vp[7] + vp[5], vp[11] + vp[9]);
-    planes[2].d = vp[15] + vp[13];
+    planes[2].n = QVector3D(mvp[3] + mvp[1], mvp[7] + mvp[5], mvp[11] + mvp[9]);
+    planes[2].d = mvp[15] + mvp[13];
 	// top plane
-	planes[3].n = QVector3D(vp[3] - vp[1], vp[7] - vp[5], vp[11] - vp[9]);
-	planes[3].d = vp[15] - vp[13];
+	planes[3].n = QVector3D(mvp[3] - mvp[1], mvp[7] - mvp[5], mvp[11] - mvp[9]);
+	planes[3].d = mvp[15] - mvp[13];
     // near plane
-	planes[4].n = QVector3D(vp[3] + vp[2], vp[7] + vp[6], vp[11] + vp[10]);
-	planes[4].d = vp[15] + vp[14];
+	planes[4].n = QVector3D(mvp[3] + mvp[2], mvp[7] + mvp[6], mvp[11] + mvp[10]);
+	planes[4].d = mvp[15] + mvp[14];
 	// far plane
-	planes[5].n = QVector3D(vp[3] - vp[2], vp[7] - vp[6], vp[11] - vp[10]);
-	planes[5].d = vp[15] - vp[14];
+	planes[5].n = QVector3D(mvp[3] - mvp[2], mvp[7] - mvp[6], mvp[11] - mvp[10]);
+	planes[5].d = mvp[15] - mvp[14];
 
 	// normalize plane normals
     for (auto& plane : planes)
@@ -600,7 +623,7 @@ bool TriangleMesh::isBoundingBoxVisible(const RenderState& state) {
         plane.d /= magnitude;
     }
 
-    return isInsideFrustum(planes);
+    return isInsideFrustum(planes, MVP);
 }
 
 void TriangleMesh::setStaticColor(Vec3f color) {
