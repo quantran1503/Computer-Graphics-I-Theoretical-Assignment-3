@@ -803,62 +803,75 @@ std::vector<std::vector<double>> TriangleMesh::generateHeightmap(int l, int w, i
 
 void TriangleMesh::calculateTerrainColor(double height, int displacementType)
 {
-    Vec3f deepWater(0.0f, 0.0f, 0.5f);      // deep blue
-    Vec3f shallowWater(0.0f, 0.5f, 1.0f);   // light blue
-    Vec3f sand(0.93f, 0.87f, 0.5f);         // sand/yellow
-    Vec3f lowLand(0.2f, 0.8f, 0.2f);        // light green
-    Vec3f grass(0.0f, 0.6f, 0.0f);          // dark green
-    Vec3f forest(0.0f, 0.4f, 0.0f);         // forest green
-    Vec3f mountain(0.6f, 0.4f, 0.2f);       // brown
-    Vec3f rock(0.5f, 0.5f, 0.5f);           // grey
-    Vec3f snow(0.95f, 0.95f, 0.95f);        // white
+    Vec3f deepBlue(0.0f, 0.0f, 0.6f);     
+    Vec3f lightBlue(0.0f, 0.5f, 1.0f);   
+    Vec3f yellow(0.93f, 0.87f, 0.5f);
+    Vec3f lightGreen(0.2f, 0.8f, 0.2f);  
+    Vec3f darkGreen(0.0f, 0.6f, 0.0f);   
+    Vec3f mediumGreen(0.0f, 0.4f, 0.0f); 
+    Vec3f brown(0.6f, 0.4f, 0.2f);       
+    Vec3f grey(0.5f, 0.5f, 0.5f);        
+    Vec3f lightGrey(0.8f, 0.8f, 0.8f);
+    Vec3f white(0.95f, 0.95f, 0.95f);    
+
+    // 20% of noise to change height between -1 and 1 for switching color level
+    int chance = rand() % 10;
+    if (chance < 2)
+    {
+        float h = static_cast<float>(rand()) / RAND_MAX * 2.0f - (1.0f);
+        height += h;
+    }
 
     Vec3f color = 0;
 
     // terrain color for step function
     if (displacementType > 1)
     {
-        if (height < -7.0f) 
-            color = deepWater;
+        if (height < -7.0f)
+            color = deepBlue;
         else if (height < -4.0f)
-            color = shallowWater;
-        else if (height < -3.0f)
-            color = sand;
+            color = lightBlue;
+        else if (height < -3.5f)
+            color = yellow;
         else if (height < 0.0f)
-            color = lowLand;
+            color = lightGreen;
         else if (height < 5.0f)
-            color = grass;
+            color = darkGreen;
         else if (height < 8.0f)
-            color = forest;
+            color = mediumGreen;
         else if (height < 9.0f)
-            color = mountain;
+            color = brown;
         else if (height < 10.0f)
-            color = rock;
+            color = grey;
+        else if (height < 11.5f)
+            color = lightGrey;
         else
-            color = snow;
+            color = white;
     }
     // ignore deepWater for cosine and sine functions since they do not look realistic
     // shrink down the color height so have more colors for these functions
     else
     {
         if (height < -5.5f)
-            color = shallowWater;
+            color = lightBlue;
         else if (height < -4.5f)
-            color = sand;
+            color = yellow;
         else if (height < -3.5f)
-            color = lowLand;
+            color = lightGreen;
         else if (height < -1.5f)
-            color = grass;
+            color = darkGreen;
         else if (height < 0.5f)
-            color = forest;
+            color = mediumGreen;
         else if (height < 2.0f)
-            color = mountain;
-        else if (height < 3.5f)
-            color = rock;
+            color = brown;
+        else if (height < 3.0f)
+            color = grey;
+        else if (height < 3.7f)
+            color = lightGrey;
         else
-            color = snow;
+            color = white;
     }
-    
+
     colors.push_back(color);
 }
 

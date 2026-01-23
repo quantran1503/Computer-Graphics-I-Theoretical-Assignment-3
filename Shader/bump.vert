@@ -24,6 +24,11 @@ void main() {
 	vec3 pos = position;
 
 	// TODO(3.4): Implement displacement mapping.
+	if(useDisplacement){
+		float height = texture(displacementTexture, texCoord).r;
+		pos += height * (normalMatrix*normal);
+	}
+
 
 	vec4 viewPos = modelView * vec4(pos, 1.0);
 	gl_Position = projection * viewPos;

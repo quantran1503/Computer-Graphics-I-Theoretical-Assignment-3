@@ -47,6 +47,7 @@ void OpenGLView::initializeGL()
     f->glClearColor(0.f, 0.f, 0.f, 1.f);
     //enable depth buffer
     f->glEnable(GL_DEPTH_TEST);
+    f->glEnable(GL_SAMPLE_SHADING);
 
     GLuint testTexture = loadImageIntoTexture(f, "../Textures/TEST_GRID.bmp");
 
@@ -352,7 +353,7 @@ void OpenGLView::setDefaults() {
     angleY = std::asin(cameraDir.y()) * 180.0f / M_PI;
 
     // light information
-    state.getLightPos() = Vec3f(0.0f, 10.0f, 20.0f);
+    state.getLightPos() = Vec3f(0.0f, 15.0f, 20.0f);
     lightMotionSpeed = 15.f;
     // mouse information
     mouseSensitivy = 1.0f;

@@ -30,6 +30,10 @@ void main() {
 		vec3 b = cross(n, t);
 
 		// TODO(3.4): Implement normal mapping.
+
+		vec3 tanNormal = texture(normalTexture, vTexCoord).rgb; //load normal from texture
+		tanNormal = tanNormal * 2.0 -1.0; //transform [0,1] -> [-1,1]
+		normal = normalize(tanNormal.x*t + tanNormal.y*b + tanNormal.z*n); //change the normal according to the tangent space
 	}
 
 	// The lighting is performed in view-space, so the camera is located in the origin.
